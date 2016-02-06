@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>jQuery-starsystem</title>
+	<link href="dist/jquery.starsystem.css" rel="stylesheet" type="text/css" media="all" />
+  <script src="lib/jquery-2.2.0.min.js"></script>
+  <script src="dist/jquery.starsystem.js"></script>
+  <script>
+  function format(date) {
+    var ye = date.getFullYear();
+    var mo = ("0" + (date.getMonth() + 1)).slice(-2);
+    var da = ("0" + (date.getDate())).slice(-2);
+    var ho = ("0" + (date.getHours())).slice(-2);
+    var mi = ("0" + (date.getMinutes())).slice(-2);
+    return  ye + "/" + mo + "/" + da + " " + ho + ":" + mi;
+  }
+  $(function() {
+    // consts
+    var c = $.starsystem.getConsts();
+    // decide M of (center) star
+    var MSel = c.MSun * 0.3;
+    // define bodies
+    var Sel       = $.starsystem.convert({ name: "Sel"      , d: 0.0000 * c.AU, phase: 0.0 * Math.PI, m:              MSel, M: MSel, rshow: 16, color: "#e3a" });
+    var Lintw     = $.starsystem.convert({ name: "Lintŵ"    , d: 0.0786 * c.AU, phase: 1.2 * Math.PI, m:   0.87 * c.MEarth, M: MSel, rshow:  6, color: "#7ba" });
+    var Cuabowvyu = $.starsystem.convert({ name: "Cuaboŵvyu", d: 0.0378 * c.AU, phase: 0.0 * Math.PI, m: 312.00 * c.MEarth, M: MSel, rshow: 10, color: "#b47" });
+    var Wawfiw    = $.starsystem.convert({ name: "Waŵfiŵ"   , d: 0.1151 * c.AU, phase: 0.8 * Math.PI, m: 238.00 * c.MEarth, M: MSel, rshow:  9, color: "#758" });
+    var Naabal    = $.starsystem.convert({ name: "Na:bal"   , d: 0.1908 * c.AU, phase: 0.9 * Math.PI, m:   3.91 * c.MEarth, M: MSel, rshow:  7, color: "#215" });
+    var Denbel    = $.starsystem.convert({ name: "Denbel"   , d: 1.4233 * c.AU, phase: 0.3 * Math.PI, m:   0.22 * c.MEarth, M: MSel, rshow:  3, color: "#512" });
+    var Halbel    = $.starsystem.convert({ name: "Halbel"   , d: 5.0602 * c.AU, phase: 0.7 * Math.PI, m:   0.40 * c.MEarth, M: MSel, rshow:  4, color: "#333" });
+    var Josran    = $.starsystem.convert({ name: "Ĵosran"   , d: 9.4154 * c.AU, phase: 1.7 * Math.PI, m:   0.12 * c.MEarth, M: MSel, rshow:  2, color: "#223" });
+    var a = 1.8;
+    Denbel.vx /= a; Denbel.vy /= a;
+    a = 2.5;
+    Halbel.vx /= a; Halbel.vy /= a;
+    a = 2.8;
+    Josran.vx /= a; Josran.vy /= a;
+
+    var bodies = [Sel, Lintw, Cuabowvyu, Wawfiw, Naabal, Denbel, Halbel, Josran];
+    $("#test")
+    .starsystem("init", {
+      bodies: bodies, // 天体リスト
+      center: 0, // 0番目の要素(Sel)を常に中心とする
+      pixelPerAU: 1650, // 1天文単位あたりのピクセル数(スケール)
+      speed1: 1, // 実時間の10万倍の速さ
+      speed2: 1, // その更に2倍の速さ
+      date: new Date(1991, 6-1, 17)
+    })
+    .starsystem("start");
+
+    var prevDate = new Date(0);
+    $("#test").starsystem("watch", function(data) {
+      $("#past").text(data.pastSeconds);
+      $("#date").text(format(data.date));
+      if (prevDate.getFullYear() != data.date.getFullYear()) {
+        $("#json").val(JSON.stringify(data, null, "  "))
+      }
+      prevDate = new Date(data.date.getTime());
+    });
+
+    $("#skip").click(function () {
+      $("#test").starsystem("skipTo", new Date())
+    });
+  });
+  </script>
+</head>
+<body>
+  <div id="test" style="width:600px; height:600px;">
+  </div>
+  <p>
+    <button id="skip">Skip to Today</button>
+  </p>
+  <p>
+    <span id="past"></span> | <span id="date"></span>
+  </p>
+  <p>
+  <textarea id="json" cols="80" rows="40">{}</textarea>
+  </p>
+  <!-- <div id="test2" style="width:400px; height:400px;">
+  </div> -->
+</body>
+</html>

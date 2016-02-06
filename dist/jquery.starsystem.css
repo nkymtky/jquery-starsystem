@@ -1,0 +1,83 @@
+.jquery-starsystem {
+  -webkit-text-size-adjust: 100%;
+  position: relative;
+  display: block;
+  color: #fff;
+  font-size: 24px;
+  font-family: Georgia, serif;
+  border-width: 0px; }
+  .jquery-starsystem * {
+    -webkit-text-size-adjust: 100%;
+    display: block; }
+  .jquery-starsystem .noselect {
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    -o-user-select: none; }
+  .jquery-starsystem > .canvases {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background-color: #111; }
+    .jquery-starsystem > .canvases canvas {
+      position: absolute; }
+  .jquery-starsystem > svg {
+    position: absolute;
+    width: 100%;
+    height: 100%; }
+    .jquery-starsystem > svg > text {
+      fill: white;
+      fill-opacity: 0.75;
+      font-family: Georgia, serif;
+      font-size: 14px;
+      vertical-align: middle; }
+  .jquery-starsystem > .ui {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-flow: column-reverse nowrap; }
+    .jquery-starsystem > .ui > .info {
+      position: relative;
+      width: 100%;
+      height: auto;
+      flex: 0 0 auto;
+      display: flex;
+      flex-flow: row nowrap; }
+      .jquery-starsystem > .ui > .info > * {
+        position: relative;
+        flex: 1 1 0;
+        padding: 8px 16px;
+        vertical-align: middle;
+        text-align: center;
+        background-color: rgba(0, 0, 0, 0.25);
+        cursor: pointer; }
+      .jquery-starsystem > .ui > .info > *:hover, .jquery-starsystem > .ui > .info > *.selected {
+        background-color: rgba(255, 255, 255, 0.125); }
+      .jquery-starsystem > .ui > .info > .small {
+        flex: 0 0 auto; }
+  .jquery-starsystem > .skipping {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-flow: column nowrap;
+    justify-content: center;
+    align-items: center;
+    background-color: rgba(0, 0, 0, 0.75); }
+    .jquery-starsystem > .skipping > div {
+      position: relative;
+      display: flex;
+      flex: 0 0 auto; }
+    .jquery-starsystem > .skipping > .progress {
+      position: relative;
+      margin: 8px;
+      width: 75%;
+      height: 10px;
+      background-color: #222; }
+      .jquery-starsystem > .skipping > .progress > .done {
+        position: absolute;
+        background-color: #fff;
+        left: 0px;
+        height: 100%; }
