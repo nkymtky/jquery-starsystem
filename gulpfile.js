@@ -8,7 +8,7 @@ var jss = ['./src/header.js', './src/parts/*.js', './src/footer.js'];
 gulp.task('js', function() {
   return gulp.src(jss)
     .pipe(plumber())
-    .pipe(concat('jquery.starsystem.js'))
+    .pipe(concat('jquery-starsystem.js'))
     .pipe(gulp.dest('./dist/'));
 });
 
@@ -17,7 +17,7 @@ gulp.task('sass', function() {
   return gulp.src(sasses)
     .pipe(plumber())
     .pipe(sass())
-    .pipe(rename('jquery.starsystem.css'))
+    .pipe(rename('jquery-starsystem.css'))
     .pipe(gulp.dest('./dist/'));
 });
 
@@ -25,3 +25,4 @@ gulp.task('watch', function() {
   gulp.watch(['./src/*.js', './src/parts/*.js'], ['js']);
   gulp.watch(['./src/*.scss'], ['sass']);
 });
+gulp.run(['js', 'sass']);
