@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <!-- <link rel="stylesheet" type="text/css" href="./style.css"> -->
+  <title>Lintw's Star System</title>
+
+  <script type="text/javascript">
+
+  var MSun = 1.989e30; // 太陽質量 kg
+  var MJupiter = 1.8986e27; // 木星質量 kg
+  var MEarth = 5.972e24; // 地球質量 kg
+  var AU = 149597870700; // 天文単位 m
+  var G = 6.67e-11; // 万有引力定数 m^3/(s^2・kg)
+
+  var ID_SEL = 0;
+  var ID_LINTW = 1;
+
+  var bodies = [];
+
+  // var take = 0;
+  var pastSeconds = 0;
+  var JSONTime = 1000;
+
+  function start() {
+    document.getElementById("start").setAttribute("disabled", "disabled");
+    bodies = JSON.parse(document.getElementById("jsonparam").value);
+    for(var i = 0; i < bodies.length; i++) {
+      var canvas = document.createElement('canvas');
+      canvas.setAttribute("id", "canvas" + i);
+      canvas.setAttribute("width", "600px");
+      canvas.setAttribute("height", "600px");
+      canvas.setAttribute("style", "position:absolute;");
+      document.getElementById('canvases').appendChild(canvas);
+
+      var circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+      circle.setAttribute("id", "b" + i);
+      circle.setAttribute("stroke", "white");
+      circle.setAttribute("stroke-width", "1.2px");
+      document.getElementById('svg').appendChild(circle);
+
+      var text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      text.setAttribute("id", "t" + i);
+      text.setAttribute("fill", "white");
+      text.setAttribute("font-family", "serif");
+      text.setAttribute("font-size", "10.1px");
+      text.appendChild(document.createTextNode(bodies[i].name));
+      document.getElementById('svg').appendChild(text);
+    }
+    initRoutine();
+    setTimeout(main, 10);
+  }
+
+  function initRoutine() {
+    pastSeconds = 0;
+  }
+
+  function main() {
+
+    var canvas = [];
+    var ctx = [];
+    for(var i = 0; i < bodies.length; i++) {
+      canvas.push(document.getElementById("canvas" + i));
+      ctx.push(canvas[i].getContext('2d'));
+      ctx[i].beginPath();
+    }
+    var tick = 60 * 60; // 計算の最小単位(秒)
+    var D = 1; // 表示スピード
+    var radioList = document.getElementsByName("speed");
+    for(var i = 0; i < radioList.length; i++) {
+      if (radioList[i].checked) {
+        D = parseInt(radioList[i].value);
+        break;
+      }
+    }
+    // オールド座標を代入
+    for(var i = 0; i < bodies.length; i++) {
+      bodies[i].xo = bodies[i].x;
+      bodies[i].yo = bodies[i].y;
+      var uo = getU(bodies[i].xo);
+      var vo = getV(bodies[i].yo);
+      ctx[i].moveTo(uo, vo);
+    }
+    for(var t = 0; t < D; t++) {
+      // 加速度を計算する
+      for(var i = 0; i < bodies.length; i++) {
+        bodies[i].ax = 0;
+        bodies[i].ay = 0;
+        for(var j = 0; j < bodies.length; j++) {
+          if (i == j) continue;
+          var x1 = bodies[i].x; var x2 = bodies[j].x;
+          var y1 = bodies[i].y; var y2 = bodies[j].y;
+          var dx = x2 - x1;
+          var dy = y2 - y1;
+          var rr = dx * dx + dy * dy;
+          var theta = Math.atan2(dy, dx);
+          bodies[i].ax += Math.cos(theta) * bodies[j].m * G / rr;
+          bodies[i].ay += Math.sin(theta) * bodies[j].m * G / rr;
+        }
+      }
+      // 加速度を速度に加算する
+      for(var i = 0; i < bodies.length; i++) {
+        bodies[i].vx += tick * bodies[i].ax;
+        bodies[i].vy += tick * bodies[i].ay;
+      }
+      // 速度を座標に加算する
+      for(var i = 0; i < bodies.length; i++) {
+        bodies[i].x += tick * bodies[i].vx;
+        bodies[i].y += tick * bodies[i].vy;
+      }
+      // 天動説 (Selが中心0,0になるように全部ずらす)
+      for(var i = 0; i < bodies.length; i++) {
+        if (i == ID_SEL) continue;
+        bodies[i].xo -= bodies[ID_SEL].xo;
+        bodies[i].yo -= bodies[ID_SEL].yo;
+        bodies[i].x -= bodies[ID_SEL].x;
+        bodies[i].y -= bodies[ID_SEL].y;
+        var u = getU(bodies[i].x);
+        var v = getV(bodies[i].y);
+        ctx[i].lineTo(u, v);
+      }
+      bodies[ID_SEL].xo = bodies[ID_SEL].x = 0;
+      bodies[ID_SEL].yo = bodies[ID_SEL].y = 0;
+      pastSeconds += tick;
+    }
+
+    document.getElementById('eDays').innerHTML = Math.floor(pastSeconds / 60 / 60 / 24) + "";
+    document.getElementById('eYears').innerHTML = Math.floor(pastSeconds / 60 / 60 / 24 / 365.25) + "";
+
+    function getU(x) { return 600.0 * ( x) / (0.34 * AU) + 300; }
+    function getV(y) { return 600.0 * (-y) / (0.34 * AU) + 300; }
+
+    for(var i = 0; i < bodies.length; i++) {
+
+      if (D < 1000) {
+        ctx[i].globalAlpha  = 0.01;
+        // ctx.rectangle(0, 0, 600, 600);
+        //ctx[i].clearRect(0,0,600,600);
+        ctx[i].globalAlpha  = 1;
+      }
+
+      var u = getU(bodies[i].x);
+      var v = getV(bodies[i].y);
+      var rshow = bodies[i].rshow;
+      var color = bodies[i].color;
+
+      // 軌跡を描画する
+      ctx[i].strokeStyle = color;
+      ctx[i].stroke();
+
+      // 天体を動かす
+      var svgBody = document.getElementById("b" + i);
+      var svgText = document.getElementById("t" + i);
+      svgBody.setAttribute("cx", u);
+      svgBody.setAttribute("cy", v);
+      svgBody.setAttribute("r" , rshow);
+      svgBody.setAttribute("fill" , color);
+      svgText.setAttribute("x", u + rshow + 3);
+      svgText.setAttribute("y", v + 4.5);
+    }
+
+    // 場外判定
+    var i = ID_LINTW;
+    if (Math.sqrt(bodies[i].x * bodies[i].x + bodies[i].y * bodies[i].y) > 0.5 * AU) {
+    // if (bodies[i].x * bodies[i].x + bodies[i].y * bodies[i].y > 0.25 * AU * AU) {
+      /*ctx.clearRect(0,0,600,600);
+      mylog("pastEarthYears:" + Math.floor(pastSeconds / 60 / 60 / 24 / 365.25));
+      initRoutine();
+      setTimeout(main, 50);*/
+      window.alert("Lintw 突然の死");
+      return; // もうmainを呼ばない
+    }
+
+    JSONTime += 1;
+    if (JSONTime > 1000) {
+      document.getElementById("log").value = JSON.stringify(bodies);
+      JSONTime = 0;
+    }
+
+    setTimeout(main, 10);
+  }
+
+  </script>
+
+</head>
+<body>
+
+  <textarea id="jsonparam" rows="15" cols="80">[{"name":"Sel","m":5.967E+29,"x":0,"y":0,"vx":0,"vy":0,"ax":0,"ay":0,"rshow":15,"color":"#f6b"},{"name":"Lintŵ","m":5.19564E+24,"x":-9633766689.60104,"y":-6999341204.87657,"vx":33981.3306655426,"vy":-46771.2891616055,"ax":0.227071462318038,"ay":0.164977074270421,"rshow":6,"color":"#b8f"},{"name":"Cuaboŵvyu","m":1.863264E+27,"x":5654799512.46,"y":0,"vx":0,"vy":83894.27589584,"ax":-1.2446505862107,"ay":0,"rshow":10,"color":"#753"},{"name":"Waŵfiŵ","m":1.421336E+27,"x":-13930232989.6115,"y":10120906691.9761,"vx":-28259.1603242024,"vy":-38895.3973579285,"ax":0.108602055454446,"ay":-0.0789040119164519,"rshow":9,"color":"#645"},{"name":"Na:bal","m":2.335052E+25,"x":-27146266476.8943,"y":8820356657.53003,"vx":-11539.0859635803,"vy":-35513.654904161,"ax":0.0464601526594949,"ay":-0.0150958186890575,"rshow":7,"color":"#426"}]
+  </textarea>
+  <div>
+    <button id="start" onclick="start()">スタート</button>
+  </div>
+
+  <div style="width:600px; height:600px; background-color:#000">
+    <div id="canvases" style="width:600px; height:600px; position:absolute;">
+    </div>
+    <svg id="svg" width="600px" height="600px" style="position:absolute;"
+    xmlns="http://www.w3.org/2000/svg"
+    xmlns:xlink="http://www.w3.org/1999/xlink">
+    </svg>
+  </div>
+
+  <div>
+    <label><input type="radio" name="speed" value="1" checked/>実時間の36万倍</label>
+    <label><input type="radio" name="speed" value="2" unchecked/>の更にx2</label>
+    <label><input type="radio" name="speed" value="5" unchecked/>x5</label>
+    <label><input type="radio" name="speed" value="100" unchecked/>x100</label>
+    <label><input type="radio" name="speed" value="10000" unchecked/>x10000</label>
+    <label><input type="radio" name="speed" value="50000" unchecked/>x50000</label>
+    <label><input type="radio" name="speed" value="100000" unchecked/>x100000</label>
+  </div>
+  <div>
+    <span id="eDays"></span> 地球日　＝　<span id="eYears"></span> 地球年
+  </div>
+  <textarea id="log" rows="15" cols="80"></textarea>
+
+</body>
+</html>
+
+<!--
+var bodies = [
+  {
+    name: "Sun",
+    m: MSun,
+    ax: 0.0, ay: 0.0,
+    vx: 0.0, vy: 0.0,
+    x: 0.0, y: 0.0,
+    xo: 0.0, yo: 0.0,
+    color: "red"
+  },
+  {
+    name: "Earth",
+    m: MEarth,
+    ax: 0.0,
+    ay: -G * MSun / (AU * AU),
+    vx: 3.0e4,
+    vy: 0.0,
+    x: 0.0, y: AU,
+    xo: 0.0, yo: 0.0,
+    color: "black"
+  }
+];
+
+/*bodies[ID_SEL] = {
+  name: "Sel",
+  m: MSun * 0.30,
+  ax: 0.0, ay: 0.0,
+  vx: 0.0, vy: 0.0,
+  x: 0.0, y: 0.0,
+  xo: 0.0, yo: 0.0,
+  color: "#f6b",
+  r: 15,
+};
+init(bodies[ID_CUABOWVYU], MEarth * (  312 + Math.random() * 0.00), (0.0378 + Math.random() * 0.00) * AU, 0.0 * Math.PI);
+init(bodies[ID_LINTW]    , MEarth * ( 0.87 + Math.random() * 0.00), (0.0796 + Math.random() * 0.00) * AU, 1.2 * Math.PI);
+init(bodies[ID_WAWFIW]   , MEarth * (  238 + Math.random() * 0.00), (0.1151 + Math.random() * 0.00) * AU, 0.8 * Math.PI);
+init(bodies[ID_NAABAL]   , MEarth * ( 3.91 + Math.random() * 0.00), (0.1908 + Math.random() * 0.00) * AU, 0.9 * Math.PI);
+// init(bodies[ID_URANUS] , (0.0437 + Math.random() * 0.01) * AU, (Math.random() * 2) * Math.PI);
+take++;
+mylog("*** Take " + take);
+mylog(JSON.stringify(bodies));
+// document.getElementById("take").innerHTML = "Take " + take;
+*/
+
+/*
+  function init(body, m, d, rad) {
+    body.m = m;
+    body.ax = -Math.cos(rad) * G * bodies[ID_SEL].m / (d * d);
+    body.ay = -Math.sin(rad) * G * bodies[ID_SEL].m / (d * d);
+    body.vx = -Math.sin(rad) * Math.sqrt(G * bodies[ID_SEL].m / d);
+    body.vy = Math.cos(rad) * Math.sqrt(G * bodies[ID_SEL].m / d);
+    body.ox = body.x = Math.cos(rad) * d;
+    body.oy = body.y = Math.sin(rad) * d;
+  }
+*/
+/*
+  function mylog(str) {
+    CR = String.fromCharCode(13);
+    document.getElementById("log").value =
+      document.getElementById("log").value + CR + str;
+  }
+*/
+
+/*
+  {
+  },
+  {
+    name: "Lintŵ",
+    color: "#b8f",
+    r: 6,
+  },
+  {
+    name: "Cuaboŵvyu",
+    color: "#753",
+    r: 10,
+  },
+  {
+    name: "Waŵfiŵ",
+    color: "#645",
+    r: 9,
+  },
+  {
+    name: "Na:bal",
+    color: "#426",
+    r: 7,
+  },
+];*/
+
+/*var ID_CUABOWVYU = 2;
+var ID_WAWFIW = 3;
+var ID_NAABAL = 4;*/
+<canvas id="canvas0" width="600px" height="600px" style="position:absolute;">
+</canvas>
+<canvas id="canvas1" width="600px" height="600px" style="position:absolute;">
+</canvas>
+<canvas id="canvas2" width="600px" height="600px" style="position:absolute;">
+</canvas>
+<canvas id="canvas3" width="600px" height="600px" style="position:absolute;">
+</canvas>
+<canvas id="canvas4" width="600px" height="600px" style="position:absolute;">
+</canvas>
+
+<circle id="b0" stroke="white" stroke-width="3"  /> <text id="t0" font-family="sans-serif" font-size="10.1" fill="white">Sel</text>
+<circle id="b1" stroke="white" stroke-width="1.5"/> <text id="t1" font-family="sans-serif" font-size="10.1" fill="white">Lintŵ</text>
+<circle id="b2" stroke="white" stroke-width="1.5"/> <text id="t2" font-family="sans-serif" font-family="sans-serif" font-size="10.1" fill="white">Cuaboŵvyu</text>
+<circle id="b3" stroke="white" stroke-width="1.5"/> <text id="t3" font-family="sans-serif" font-size="10.1" fill="white">Waŵfiŵ</text>
+<circle id="b4" stroke="white" stroke-width="1.5"/> <text id="t4" font-family="sans-serif" font-size="10.1" fill="white">Na:bal</text>
+
+
+
+
+
+-->
+<!-- <h3><span id="take">Take</span></h3> -->
