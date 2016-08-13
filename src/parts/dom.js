@@ -56,7 +56,7 @@ function buildDom(data) {
 
   var $slowDown10 = $("<div class='slowDown10 small noselect'>&lt;&lt;</div>")
   .on("lclick", function(e) {
-    e._data.speed1 = e._data.speed1 / 10;
+    e._data.speed1 = Math.floor(e._data.speed1 / 10);
     if (e._data.speed1 < SPEED_MIN) { e._data.speed1 = SPEED_MIN; }
     updateSpeedText(e._data.speed1);
     return false;
