@@ -46,34 +46,82 @@ function buildDom(data) {
   .appendTo(this)
   ;
 
-  var $speed1 = $("<div class='speed1 noselect'>×" + data.speed1 + "</div>")
-  .on("lclick", function(e) {
-    // console.log(e);
-    e._data.speed1 = getNext(_speed1List, e._data.speed1);
-    $(this).text("×" + e._data.speed1);
-    return false;
-  })
-  .on("rclick", function(e) {
-    e._data.speed1 = getPrev(_speed1List, e._data.speed1);
-    $(this).text("×" + e._data.speed1);
-    return false;
-  })
-  .appendTo($info)
-  ;
+  var SPEED_MIN = 1;
+  var SPEED_MAX = 1000000000;
 
-  var $speed2 = $("<div class='speed2 noselect'>×" +data.speed2+ "</div>")
+  var $speed = null;
+  function updateSpeedText(speed) {
+    $speed .text("×" + speed);
+  }
+
+  var $slowDown10 = $("<div class='slowDown10 small noselect'>&lt;&lt;</div>")
   .on("lclick", function(e) {
-    e._data.speed2 = getNext(_speed2List, e._data.speed2);
-    $(this).text("×" + e._data.speed2);
-    return false;
-  })
-  .on("rclick", function(e) {
-    e._data.speed2 = getPrev(_speed2List, e._data.speed2);
-    $(this).text("×" + e._data.speed2);
+    e._data.speed1 = e._data.speed1 / 10;
+    if (e._data.speed1 < SPEED_MIN) { e._data.speed1 = SPEED_MIN; }
+    updateSpeedText(e._data.speed1);
     return false;
   })
   .appendTo($info)
   ;
+  var $slowDown2 = $("<div class='slowDown2 small noselect'>&lt;</div>")
+  .on("lclick", function(e) {
+    e._data.speed1 = Math.floor(e._data.speed1 / 2);
+    if (e._data.speed1 < SPEED_MIN) { e._data.speed1 = SPEED_MIN; }
+    updateSpeedText(e._data.speed1);
+    return false;
+  })
+  .appendTo($info)
+  ;
+  $speed = $("<div class='speed noselect'>×1</div>")
+  .appendTo($info)
+  ;
+  var $speedUp2 = $("<div class='speedUp2 small noselect'>&gt;</div>")
+  .on("lclick", function(e) {
+    e._data.speed1 = e._data.speed1 * 2;
+    if (e._data.speed1 > SPEED_MAX) { e._data.speed1 = SPEED_MAX; }
+    updateSpeedText(e._data.speed1);
+    return false;
+  })
+  .appendTo($info)
+  ;
+  var $speedUp10 = $("<div class='speedUp10 small noselect'>&gt;&gt;</div>")
+  .on("lclick", function(e) {
+    e._data.speed1 = e._data.speed1 * 10;
+    if (e._data.speed1 > SPEED_MAX) { e._data.speed1 = SPEED_MAX; }
+    updateSpeedText(e._data.speed1);
+    return false;
+  })
+  .appendTo($info)
+  ;
+  //
+  // var $speed1 = $("<div class='speed1 noselect'>×" + data.speed1 + "</div>")
+  // .on("lclick", function(e) {
+  //   // console.log(e);
+  //   e._data.speed1 = getNext(_speed1List, e._data.speed1);
+  //   $(this).text("×" + e._data.speed1);
+  //   return false;
+  // })
+  // .on("rclick", function(e) {
+  //   e._data.speed1 = getPrev(_speed1List, e._data.speed1);
+  //   $(this).text("×" + e._data.speed1);
+  //   return false;
+  // })
+  // .appendTo($info)
+  // ;
+  //
+  // var $speed2 = $("<div class='speed2 noselect'>×" +data.speed2+ "</div>")
+  // .on("lclick", function(e) {
+  //   e._data.speed2 = getNext(_speed2List, e._data.speed2);
+  //   $(this).text("×" + e._data.speed2);
+  //   return false;
+  // })
+  // .on("rclick", function(e) {
+  //   e._data.speed2 = getPrev(_speed2List, e._data.speed2);
+  //   $(this).text("×" + e._data.speed2);
+  //   return false;
+  // })
+  // .appendTo($info)
+  // ;
 
   var $zoomin = $("<div class='zoomin small noselect'>+</div>")
   .on("lclick", function(e) {
